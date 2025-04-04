@@ -1,41 +1,29 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Clone') {
-            steps {
-                echo 'Cloning the repository...'
-                // Here you can add any necessary clone commands if needed
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Building the application...'
-                // Add your build commands here (e.g., Maven, Gradle)
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                // Add your test commands here (e.g., running unit tests)
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying the application...'
-                // Add your deployment commands here
-            }
-        }
+    agent any 
+    environment {
+    DOCKERHUB_CREDENTIALS = credentials('amonkincloud-dockerhub')
     }
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
+    stages { 
+
+        stage('Build docker image') {
+            steps {  
+                sh 'docker build -t ylmt/flaskapp:$BUILD_NUMBER .'
+            }
         }
-        failure {
-            echo 'Pipeline failed!'
+        stage('login to dockerhub') {
+            steps{
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+        stage('push image') {
+            steps{
+                sh 'docker push ylmt/flaskapp:$BUILD_NUMBER'
+            }
+        }
+}
+post {
+        always {
+            sh 'docker logout'
         }
     }
 }
