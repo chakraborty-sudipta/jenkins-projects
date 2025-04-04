@@ -5,7 +5,7 @@ pipeline {
 
         stage('Build docker image') {
             steps {  
-                sh 'docker build -t ylmt/flaskapp:$BUILD_NUMBER .'
+                sh 'docker build -t sudip2024/flaskapp:$BUILD_NUMBER .'
             }
         }
 
