@@ -1,8 +1,6 @@
 pipeline {
     agent any 
-    environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-    }
+
     stages { 
 
         stage('Build docker image') {
@@ -10,18 +8,25 @@ pipeline {
                 sh 'docker build -t ylmt/flaskapp:$BUILD_NUMBER .'
             }
         }
+
         stage('login to dockerhub') {
-            steps{
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', 
+                                                 usernameVariable: 'DOCKER_USER', 
+                                                 passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
+                }
             }
         }
+
         stage('push image') {
-            steps{
+            steps {
                 sh 'docker push ylmt/flaskapp:$BUILD_NUMBER'
             }
         }
-}
-post {
+    }
+    
+    post {
         always {
             sh 'docker logout'
         }
